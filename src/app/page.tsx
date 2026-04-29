@@ -55,64 +55,108 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-bold mb-1">💌 Undangan Digital</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        Generate link undangan untuk setiap tamu
-      </p>
-
-      <form onSubmit={addGuest} className="flex gap-2 mb-8">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nama tamu (contoh: Fauzan & Putri)"
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          disabled={loading || !name.trim()}
-          className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+    <main className="min-h-screen px-4 py-8 sm:py-14">
+      {/* Header */}
+      <div className="mx-auto max-w-2xl text-center mb-8 sm:mb-12">
+        <p className="text-accent-light tracking-[0.3em] uppercase text-xs sm:text-sm mb-2">
+          ✦ The Wedding of ✦
+        </p>
+        <h1
+          className="text-3xl sm:text-5xl mb-2 text-foreground"
+          style={{ fontFamily: "var(--font-playfair), serif" }}
         >
-          {loading ? "..." : "Tambah"}
-        </button>
-      </form>
-
-      <div className="mb-4 text-sm text-gray-600">
-        Total tamu: <span className="font-semibold">{guests.length}</span>
+          Yudhit &amp; Aryani
+        </h1>
+        <div className="flex items-center justify-center gap-3 my-4">
+          <span className="h-px w-12 sm:w-20 bg-accent-light" />
+          <span className="text-accent-light text-lg">❧</span>
+          <span className="h-px w-12 sm:w-20 bg-accent-light" />
+        </div>
+        <p className="text-muted text-sm sm:text-base">
+          Guest Invitation Link Generator
+        </p>
       </div>
 
-      {guests.length === 0 ? (
-        <p className="text-sm text-gray-400">Belum ada tamu.</p>
-      ) : (
-        <ul className="space-y-3">
-          {guests.map((g) => (
-            <li
-              key={g.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-sm">{g.name}</p>
-                <p className="truncate text-xs text-gray-400">{g.link}</p>
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <button
-                  onClick={() => copyLink(g.link, g.id)}
-                  className="rounded bg-gray-100 px-3 py-1 text-xs hover:bg-gray-200"
-                >
-                  {copied === g.id ? "✅ Copied" : "📋 Copy"}
-                </button>
-                <button
-                  onClick={() => deleteGuest(g.id)}
-                  className="rounded bg-red-50 px-3 py-1 text-xs text-red-600 hover:bg-red-100"
-                >
-                  🗑️
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Form */}
+      <div className="mx-auto max-w-xl">
+        <form onSubmit={addGuest} className="flex flex-col sm:flex-row gap-3 mb-8">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nama tamu (contoh: Fauzan & Putri)"
+            className="flex-1 rounded-none border border-border bg-card px-4 py-3 text-sm sm:text-base text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent-light transition-colors"
+          />
+          <button
+            type="submit"
+            disabled={loading || !name.trim()}
+            className="rounded-none border border-accent bg-accent px-6 py-3 text-sm sm:text-base font-medium text-white tracking-wider uppercase hover:bg-accent-light hover:border-accent-light disabled:opacity-40 transition-colors"
+          >
+            {loading ? "..." : "Tambah"}
+          </button>
+        </form>
+
+        {/* Counter */}
+        <div className="flex items-center gap-3 mb-6">
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-muted text-xs sm:text-sm tracking-widest uppercase">
+            Total Tamu: {guests.length}
+          </span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        {/* Guest List */}
+        {guests.length === 0 ? (
+          <p className="text-center text-muted/60 text-sm italic py-8">
+            Belum ada tamu yang ditambahkan
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {guests.map((g) => (
+              <li
+                key={g.id}
+                className="border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="text-base sm:text-lg text-foreground"
+                    style={{ fontFamily: "var(--font-playfair), serif" }}
+                  >
+                    {g.name}
+                  </p>
+                  <p className="truncate text-xs sm:text-sm text-muted/70 mt-0.5">
+                    {g.link}
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => copyLink(g.link, g.id)}
+                    className="flex-1 sm:flex-none rounded-none border border-border px-4 py-1.5 text-xs sm:text-sm text-accent hover:bg-accent hover:text-white hover:border-accent transition-colors"
+                  >
+                    {copied === g.id ? "✓ Copied" : "Copy Link"}
+                  </button>
+                  <button
+                    onClick={() => deleteGuest(g.id)}
+                    className="rounded-none border border-border px-3 py-1.5 text-xs sm:text-sm text-muted hover:bg-red-800 hover:text-white hover:border-red-800 transition-colors"
+                    aria-label={`Hapus ${g.name}`}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Footer ornament */}
+      <div className="flex items-center justify-center gap-3 mt-12">
+        <span className="h-px w-8 bg-border" />
+        <span className="text-accent-light/50 text-xs tracking-[0.2em]">
+          ✦
+        </span>
+        <span className="h-px w-8 bg-border" />
+      </div>
     </main>
   );
 }
