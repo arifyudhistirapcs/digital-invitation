@@ -1,65 +1,118 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface Guest {
+  id: string;
+  name: string;
+  link: string;
+  created_at: string;
+}
 
 export default function Home() {
+  const [guests, setGuests] = useState<Guest[]>([]);
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  async function fetchGuests() {
+    const res = await fetch("/api/guests");
+    const data = await res.json();
+    if (Array.isArray(data)) setGuests(data);
+  }
+
+  useEffect(() => {
+    fetchGuests();
+  }, []);
+
+  async function addGuest(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || loading) return;
+    setLoading(true);
+    await fetch("/api/guests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    setName("");
+    await fetchGuests();
+    setLoading(false);
+  }
+
+  async function deleteGuest(id: string) {
+    await fetch("/api/guests", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    await fetchGuests();
+  }
+
+  async function copyLink(link: string, id: string) {
+    await navigator.clipboard.writeText(link);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="mx-auto w-full max-w-2xl px-4 py-10">
+      <h1 className="text-2xl font-bold mb-1">💌 Undangan Digital</h1>
+      <p className="text-sm text-gray-500 mb-6">
+        Generate link undangan untuk setiap tamu
+      </p>
+
+      <form onSubmit={addGuest} className="flex gap-2 mb-8">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nama tamu (contoh: Fauzan & Putri)"
+          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+        <button
+          type="submit"
+          disabled={loading || !name.trim()}
+          className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? "..." : "Tambah"}
+        </button>
+      </form>
+
+      <div className="mb-4 text-sm text-gray-600">
+        Total tamu: <span className="font-semibold">{guests.length}</span>
+      </div>
+
+      {guests.length === 0 ? (
+        <p className="text-sm text-gray-400">Belum ada tamu.</p>
+      ) : (
+        <ul className="space-y-3">
+          {guests.map((g) => (
+            <li
+              key={g.id}
+              className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-sm">{g.name}</p>
+                <p className="truncate text-xs text-gray-400">{g.link}</p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => copyLink(g.link, g.id)}
+                  className="rounded bg-gray-100 px-3 py-1 text-xs hover:bg-gray-200"
+                >
+                  {copied === g.id ? "✅ Copied" : "📋 Copy"}
+                </button>
+                <button
+                  onClick={() => deleteGuest(g.id)}
+                  className="rounded bg-red-50 px-3 py-1 text-xs text-red-600 hover:bg-red-100"
+                >
+                  🗑️
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
   );
 }
